@@ -27,28 +27,18 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-module OpenProject::TextFormatting::Formatters
+module OpenProject::TextFormatting::Formats
   module Plain
-    class Formatter < OpenProject::TextFormatting::Formatters::Base
-      attr_reader :context,
-                  :pipeline
-
-      def initialize(context)
-        @context = context
-        @pipeline = HTML::Pipeline.new(located_filters, context)
+    class Helper
+      def wikitoolbar_for(_field_id)
+        ''.html_safe
       end
 
-      def to_html(text)
-        pipeline.to_html(text, context).html_safe
+      def text_formatting_has_preview?
+        false
       end
 
-      def to_document(text)
-        pipeline.to_document text, context
-      end
-
-      def filters
-        %i(plain pattern_matcher)
-      end
+      def text_formatting_js_includes; end
     end
   end
 end

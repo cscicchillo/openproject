@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is a project management system.
 # Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
@@ -27,30 +28,39 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-require 'spec_helper'
+module OpenProject::TextFormatting
+  module Formats
+    class << self
+      attr_reader :plain, :rich
 
-describe OpenProject::TextFormatting::Formats::Plain::Formatter do
-  subject { described_class.new({}) }
+      %i(plain rich).each do |flavor|
+        define_method("#{flavor}_format") do
+          send(flavor).format
+        end
 
-  it 'should plain text' do
-    assert_html_output('This is some input' => 'This is some input')
-  end
+        define_method("#{flavor}_formatter") do
+          send(flavor).formatter
+        end
 
-  it 'should escaping' do
-    assert_html_output(
-      'this is a <script>' => 'this is a &lt;script&gt;'
-    )
-  end
+        define_method("#{flavor}_helper") do
+          send(flavor).helper
+        end
 
-  private
+        define_method("register_#{flavor}!") do |klass|
+          instance_variable_set("@#{flavor}", klass)
+        end
+      end
 
-  def assert_html_output(to_test, expect_paragraph = true)
-    to_test.each do |text, expected|
-      assert_equal((expect_paragraph ? "<p>#{expected}</p>" : expected), subject.to_html(text), "Formatting the following text failed:\n===\n#{text}\n===\n")
+      def supported?(name)
+        [plain, rich].map(&:format).include?(name.to_sym)
+      end
+
+      def plain?(name)
+        name && plain.format == name.to_sym
+      end
     end
   end
-
-  def to_html(text)
-    subject.to_html(text)
-  end
 end
+
+OpenProject::TextFormatting::Formats.register_plain! ::OpenProject::TextFormatting::Formats::Plain::Format
+OpenProject::TextFormatting::Formats.register_rich! ::OpenProject::TextFormatting::Formats::Markdown::Format
